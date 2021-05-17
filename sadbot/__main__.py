@@ -228,7 +228,33 @@ def start_bot(con):
                 insert_message_into_db(con, message_info)
 
 
+def ensure_messages_table_exists(con):
+    cur = con.cursor()
+    cur.execute(
+        """
+    SELECT name
+       FROM sqlite_master
+       WHERE type='table' AND name='messages'
+    """
+    )
+    if not cur.fetchone():
+        cur.execute(
+            """
+          CREATE TABLE messages (
+            MessageID integer,
+            SenderName text,
+            SenderID int,
+            ChatID integer,
+            Message text,
+            ReplyToMessageID int
+          )
+        """
+        )
+        con.commit()
+
+
 if __name__ == "__main__":
     con = sqlite3.connect("messages.db")
+    ensure_messages_table_exists(con)
     con.create_function("regexp", 2, lambda x, y: 1 if re.search(x, y) else 0)
     start_bot(con)
